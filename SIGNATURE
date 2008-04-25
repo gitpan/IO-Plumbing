@@ -1,0 +1,49 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.55.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 65a5fb416a164e3adfc8a49b1570d5fb2499259a MANIFEST
+SHA1 be22edf15bc7f1590ef42da4b08a2742ec472b98 MANIFEST.SKIP
+SHA1 96c5ea3c61d90fabced7d747484bd51809750288 META.yml
+SHA1 ca6574153133b7b8812791d51c3ba01ed72c539b README
+SHA1 7e2cfa1b9efe0d502ee57717649c90ba4bd28ba9 inc/Module/Install.pm
+SHA1 6e1392d80a0f239eecd5664f7f21f922cedb9329 inc/Module/Install/Base.pm
+SHA1 f69417fe831d9cc22a78f00a617afadceade4d81 inc/Module/Install/Can.pm
+SHA1 c61d02895330310048bf388881b5e2e064031561 inc/Module/Install/Fetch.pm
+SHA1 7d3be9b158e37b2b2c22084740099955623b1d56 inc/Module/Install/Metadata.pm
+SHA1 0a8b66180229ba2f9deaea1fedd0aacf7a7ace6b inc/Module/Install/Win32.pm
+SHA1 d3352eb33fe43a5f3ead513f645224fe34d73bc9 inc/Module/Install/WriteAll.pm
+SHA1 58c34dd3732cbab646b2559fc46ded74e417f272 lib/IO/Plumbing.pm
+SHA1 a5ce14fee63ff61482e5bc4e370d5bf5a25717d3 lib/IO/Plumbing/Bucket.pm
+SHA1 925eb08ff34638db0e1eba33b75219ba828bb525 lib/IO/Plumbing/PRNG.pm
+SHA1 f4545bd5e96a243465fc0b4159b9d9bd3d95464d lib/IO/Plumbing/Plug.pm
+SHA1 bf85f4971ef657b85abbad2035bc7562b20b6629 lib/IO/Plumbing/Util.pm
+SHA1 2ed4dfe7f006ac6683acc117b6498da2a6b59265 lib/IO/Plumbing/Vent.pm
+SHA1 fc5756c460b6c34b048404c99d8c6eecccb69f81 t/01-use.t
+SHA1 931676a6f5800b3d3fde80c12dffb623551e2663 t/02-model.t
+SHA1 65a6c72945369da61af65052ee2155e3e329172f t/03-pipelines.t
+SHA1 183bd56f98c1d6e9358d4c76cf8f3ed947411ecf t/04-buckets.t
+SHA1 68c929726f4f68f4db602dcba3e2cd0c4735b3b8 t/05-shellquotes.t
+SHA1 fc857a715abb0b783eeef00f46370230989c1462 t/06-plug.t
+SHA1 bc7f42aacf5e85e8972bfa1a1c3e82f23ec7d8bb t/07-vent.t
+SHA1 8320a18788c756f8dc36a0db47367e78a1890dd4 t/pod.t
+SHA1 e362b1826df0106dc8a68156c788000c27d97ecd t/pod_coverage.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iEYEARECAAYFAkgRjPoACgkQ/AZAiGayWEPqKwCgslVL3BKIUog1mbRQ0V5+TkhA
+rLkAnirrMSJ1Ie12nXxSrHH7yMuX9nus
+=ApEG
+-----END PGP SIGNATURE-----

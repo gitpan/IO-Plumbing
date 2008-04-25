@@ -1,0 +1,8 @@
+.git
+blib
+MANIFEST.old
+MANIFEST.bak
+IO-Plumbing-*
+Makefile
+Makefile.old
+.*~$

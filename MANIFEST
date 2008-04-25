@@ -1,0 +1,27 @@
+inc/Module/Install.pm
+inc/Module/Install/Base.pm
+inc/Module/Install/Can.pm
+inc/Module/Install/Fetch.pm
+inc/Module/Install/Metadata.pm
+inc/Module/Install/Win32.pm
+inc/Module/Install/WriteAll.pm
+lib/IO/Plumbing.pm
+lib/IO/Plumbing/Bucket.pm
+lib/IO/Plumbing/Plug.pm
+lib/IO/Plumbing/PRNG.pm
+lib/IO/Plumbing/Util.pm
+lib/IO/Plumbing/Vent.pm
+MANIFEST			This list of files
+MANIFEST.SKIP
+META.yml
+README
+SIGNATURE
+t/01-use.t
+t/02-model.t
+t/03-pipelines.t
+t/04-buckets.t
+t/05-shellquotes.t
+t/06-plug.t
+t/07-vent.t
+t/pod.t
+t/pod_coverage.t

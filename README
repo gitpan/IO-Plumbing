@@ -1,0 +1,25 @@
+README for IO::Plumbing
+~~~~~~~~~~~~~~~~~~~~~~~
+This module is designed to make setting up of long pipelines easy.
+This is a prototype release of the module for API review; the API
+may change significantly from this release.
+
+For now the best summaries of how to use this module can be found in
+the test suite - go there to take a look!
+
+INSTALLATION
+~~~~~~~~~~~~
+The usual...
+
+  perl Makefile.PL
+  make
+  make test
+  make install
+
+Or use your favourite packaging tool.
+
+BUG REPORTS / FEATURE REQUESTS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+See the POD for IO::Plumbing.
+
+Sam Vilain, <samv@cpan.org>
