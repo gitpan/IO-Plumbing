@@ -1,0 +1,21 @@
+
+=encoding utf8
+
+=head1 REVISION HISTORY FOR IO::Plumbing
+
+=head1 0.02, 29 Apr 2008
+
+=over
+
+=item *
+
+Update dependencies, correct usage of Module::Install
+
+=item *
+
+Move use of $PREFER_CODE to where it was defined.
+
+=back
+
+=cut
+

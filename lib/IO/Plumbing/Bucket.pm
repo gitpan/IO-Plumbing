@@ -108,11 +108,6 @@ sub wait {
 	}
 }
 
-sub prefer_code {
-	my $self = shift;
-	$PREFER_CODE;
-}
-
 sub contents {
 	my $self = shift;
 	if ( @_ ) {

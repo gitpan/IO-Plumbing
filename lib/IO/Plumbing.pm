@@ -99,7 +99,7 @@ BEGIN {
 	use base qw(Exporter);
 	our (@EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
-	$VERSION = "0.01";
+	$VERSION = "0.02";
 
 	our @handyman = qw(plumb prng  plug  bucket vent  );
 
@@ -1135,7 +1135,7 @@ sub reap {
 
 sub prefer_code {
 	my $self = shift;
-	return 1;
+	return $PREFER_CODE;
 }
 
 =back

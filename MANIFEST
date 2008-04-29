@@ -1,10 +1,13 @@
+doc/Changes.pod
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
 inc/Module/Install/Fetch.pm
+inc/Module/Install/Include.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
+inc/Test/Depends.pm
 lib/IO/Plumbing.pm
 lib/IO/Plumbing/Bucket.pm
 lib/IO/Plumbing/Plug.pm
@@ -15,7 +18,6 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
 README
-SIGNATURE
 t/01-use.t
 t/02-model.t
 t/03-pipelines.t
