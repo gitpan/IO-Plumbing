@@ -9,13 +9,18 @@ use Test::More no_plan;
 use strict;
 
 BEGIN {
-	use_ok("IO::Plumbing", qw(plumb plug));
+	use_ok("IO::Plumbing", qw(plumb plug bucket));
 }
 
-my $command = plumb("cat", input => plug);
+my $command = plumb("cat", input => plug, output => bucket);
 
 $command->execute;
-is($command->terminus->contents, "", "Plug - input");
+my $bucket = $command->terminus;
+isa_ok($bucket, "IO::Plumbing::Bucket", "terminus");
+is($bucket->contents, "", "Plug - input");
 
-$command = plumb("dd if=/dev/zero bs=1k count=200k", output => plug);
+$command = plumb
+	( "dd if=/dev/zero bs=1k count=200",
+	  output => plug, stderr => "/dev/null",
+	);
 isnt($command->errormsg, undef, "plug - output");

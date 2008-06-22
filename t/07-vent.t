@@ -9,7 +9,7 @@ use Test::More no_plan;
 use strict;
 
 BEGIN {
-	use_ok("IO::Plumbing", qw(plumb vent));
+	use_ok("IO::Plumbing", qw(plumb vent bucket));
 }
 
 my $command = plumb("cat", input => vent);
@@ -26,7 +26,14 @@ is_deeply(\@warnings,
 	  "got some warnings!");
 }
 
-$command = plumb("dd if=/dev/zero bs=1k count=200",
-		 output => vent,
-		 stderr => vent);
+my $bucket = bucket;
+$command = plumb
+	("dd bs=1k count=200",
+	 input => vent, output => $bucket,
+	 stderr => vent);
+
+$command->execute;
+$bucket->collect_out;
+like($bucket->contents, qr{\A\0{1000}}, "saw lots of nothing");
 is($command->error, undef, "vent - success");
+is($command->rc, 0, "vent - success (RC)");

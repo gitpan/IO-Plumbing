@@ -72,11 +72,13 @@ sub needs_fork {
 	$self->pouring;
 }
 
+sub needs_pipe { 1 }
+
 sub execute {
 	my $self = shift;
 
 	if ( $self->filling ) {
-		return $self->{input}->execute();
+		return $self->get_plumb(0, 0)->execute();
 	}
 	elsif ( $self->pouring ) {
 		$self->code(sub { print $self->contents });
@@ -164,16 +166,23 @@ BEGIN {
 
 sub collect_out {
 	my $self = shift;
+	return if $self->{collected};
 
-	my $out_b = $self->{contents};
+	my $out_b = $self->{contents}||=[];
 	my $x;
-	if ( ref $out_b eq "ARRAY" ) {
+	$DB::single = 1;
+	if ( ref $out_b and ref $out_b eq "ARRAY" ) {
 		$x = $out_b;
 	} else {
 		$x = [];
 	}
 
-	my $spool_fh = $self->{in_fh};
+	warn "$self: about to collect\n"
+		if IO::Plumbing::DEBUG and IO::Plumbing::DEBUG gt "1";
+
+	my $spool_fh = $self->get_fd(0)
+		or die "bucket $self has no FD 0";
+
 	my $spooled = 0;
 	my $max = $self->collect_max;
 	my $buffer;
@@ -197,6 +206,7 @@ sub collect_out {
 	}
 
 	close $spool_fh;
+	$self->{collected} = 1;
 
 	if ( ref $out_b eq "SCALAR" ) {
 		$$out_b = join "", @$x;
@@ -204,8 +214,6 @@ sub collect_out {
 	elsif ( ref $out_b eq "ARRAY" ) {
 		@$out_b = @$x;
 	}
-
-	$self->{output_spooled} = 0;
 
 	$out_b;
 }

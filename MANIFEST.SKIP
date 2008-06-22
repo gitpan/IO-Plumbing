@@ -1,8 +1,6 @@
 .git
 blib
-MANIFEST.old
-MANIFEST.bak
+MANIFEST.(old|bak)
 IO-Plumbing-*
-Makefile
-Makefile.old
+Makefile(.old)?$
 .*~$

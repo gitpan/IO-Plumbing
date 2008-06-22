@@ -99,9 +99,9 @@ BEGIN {
 	use base qw(Exporter);
 	our (@EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
-	$VERSION = "0.02";
+	$VERSION = "0.03";
 
-	our @handyman = qw(plumb prng  plug  bucket vent  );
+	our @handyman = qw(plumb prng  plug  bucket vent hose );
 
 	our @extra = qw(spigot alarm);
 	%EXPORT_TAGS =
@@ -214,8 +214,10 @@ sub prng {
 
 When read from, always returns end of file, like F</dev/null> on Unix.
 
-When written to, always returns an error, F</dev/full> on Unix or a
-closed filehandle.
+When written to, always returns an error, like F</dev/full> on Unix.
+This is slightly different to the filehandle being closed.  To use a
+real closed filehandle, just pass one in to B<input()>, B<output()> or
+B<stderr()>.
 
 =cut
 
@@ -268,6 +270,20 @@ sub vent {
     } else {
 	IO::Plumbing::Vent->new(@_);
     }
+}
+
+=item hose( [ ... ] )
+
+This represents a filehandle.  This class is responsible for plugging
+into an IO::Plumbing contraption, and giving you a filehandle that you
+can read from or write to.
+
+Arguments are passed to IO::Plumbing::Hose->new();
+
+=cut
+
+sub hose {
+	IO::Plumbing::Hose->new(@_);
 }
 
 =back
@@ -442,49 +458,76 @@ quacks like one), then that object's C<output> property is
 automatically set to point back at this object.  So, an
 C<IO::Plumbing> chain is a doubly-linked list.  The C<$weakref> flag
 indicates this is what is happening, and aims to stop these circular
-references causing memory leaks.
+references, which might otherwise cause memory leaks.
 
 =cut
 
 use IO::File;
 
-sub input {
-	my $self = shift;
-	if ( @_ ) {
-		if ( $self->{input} && $_[0] && $_[0] == $self->{input}) {
-			return;
-		}
-		$self->{input} = shift;
-		if ( @_ ) {
-			weaken($self->{input});
-		}
-		if ( defined $self->{input} and
-			!ref(my $input_fn = $self->{input}) ) {
+sub _parse_direction {
+	( $_[0]
+	  ? ( $_[0] eq "input" ? $_[0] : "output" )
+	  : "input" );
+}
 
-			#string, is it a command pipe?
-			if ( $input_fn =~ m{(.*)\|$}s ) {
-				$self->{input} = plumb($1, output => $self);
-			}
-		}
-		elsif ( ref $self->{input} eq "CODE" ) {
-			$self->{input} = plumb(undef, output => $self,
-				code => $self->{input});
-		}
-		elsif ( blessed $self->{input}
-			and $self->{input}->can("output")
-			and $self->{input}->can("outputs_include")
-			and !$self->{input}->outputs_include($self) ) {
-			warn "input: $self->{input} ==> $self\n"
-				if DEBUG && DEBUG ge "1";
-			$self->{input}->output($self, 1);
+sub _not_direction {
+	( $_[0]
+	  ? ( $_[0] eq "input" ? "output" : "input" )
+	  : "output" );
+}
+
+sub get_plumb {
+	my $self = shift;
+	my $direction = _parse_direction(shift);
+	my $number = (shift) || 0;
+
+	$self->{$direction}[$number][0];
+}
+
+sub get_plumb_pair {
+	my $self = shift;
+	my $direction = _parse_direction(shift);
+	my $number = (shift) || 0;
+
+	$self->{$direction}[$number][1];
+}
+
+sub has_plumb {
+	my $self = shift;
+	!!$self->get_plumb(@_);
+}
+
+sub connect_plumb {
+	my $self = shift;
+	my $direction = _parse_direction(shift);
+	my $number = (shift) || 0;
+
+	my $plumb = shift;
+	my $reverse = (shift);
+	my $weak = shift;
+
+	$self->{$direction}[$number] = [ $plumb, $reverse ];
+
+	if ( $weak ) {
+		weaken($self->{$direction}[$number][0]);
+		$self->connect_hook($direction, $number);
+	}
+	else {
+		if ( blessed $plumb and $plumb->can("connect_plumb") ) {
+			$plumb->connect_plumb
+				( _not_direction($direction), $reverse,
+				  $self, $number, 1
+				);
+			$self->connect_hook($direction, $number);
 		}
 	}
-	$self->{input} ||= $self->default_input;
 }
+
+sub connect_hook { }
 
 sub default_input {
 	my $self = shift;
-	plug(output => $self);
+	plug;
 }
 
 =item output( [ $dest] [, $weakref ] )
@@ -498,68 +541,104 @@ Pass in "|cmdname" as a string for a quick way to make more plumbing.
 Specify where stderr of this stage goes.  Defaults to C<STDERR> of the
 current process.
 
+=item connect_plumb( $direction, $number, $plumb, $reverse, $weak )
+
+This is a generic interface to connect any plumb to any slot of the
+plumbing.  The above three methods are shortcuts to invokation of this
+method.
+
+C<$direction> can be C<undef>, 0 or "input" to mean input, anything
+else means output.
+
+The C<$reverse> parameter refers to which plumbing slot to plumb the
+other way into.  C<undef> or 0 means the first slot, which also
+conveniently generally does what you wanted.
+
+C<$weak> means to make the reference to C<$plumb> a "weak" reference,
+and to not try to make a corresponding counter-plumb.  This is used to
+break the infinite loop that might otherwise eventuate and would not
+normally be passed in by a user of this module.
+
+This example:
+
+  $plumb->connect_plumb( input => 0, $plumb2, 1 );
+
+Connects the standard error of C<$plumb2> to the standard input of
+C<$plumb>.
+
+=item has_plumb( $direction, $number )
+
+=item get_plumb( $direction, $number )
+
+Predicate/accessors for the plumbs at the various slots.  Same input
+as the above.
+
+=item get_plumb_pair( $direction, $number )
+
 =cut
 
 my $looking_for = <<THESE; # ??
+sub input {
 sub output {
 sub stderr {
 THESE
 
 BEGIN {
-	for my $fh ( qw(output stderr) ) {
+	my @fhs =
+		([ "input",  0, 0, 0, "in"  ],
+		 [ "output", 1, 0, 1, "out" ],
+		 [ "stderr", 1, 1, 2, "err" ]);
+
+	for my $i ( @fhs ) {
 		no strict 'refs';
-		my $default_func = "default_$fh";
-		*$fh = sub {
+		my ($name, $direction, $number, $fd_num, $fd_name) = @$i;
+		my $default_func = "default_$name";
+		my $pat = $direction ? qr{\A\s*|(.*)\Z}
+			: qr{(.*)\|\s*\Z}s;
+
+		*$name = sub {
 			my $self = shift;
-			if ( @_ or !$self->{$fh} ) {
-				my $where = shift || $self->$default_func;
-				if ( $self->{$fh} && $where == $self->{$fh}) {
+			if ( @_ or ! $self->has_plumb($direction, $number) ) {
+				if ( $self->has_plumb($direction, $number) &&
+				     $_[0] &&
+				     $_[0] == $self->get_plumb
+				     ($direction, $number) ) {
 					return;
 				}
-				$self->{$fh} = $where;
-				if ( @_ ) {
-					weaken($self->{$fh});
+
+				my $plumb = (shift) || $self->$default_func;
+				my $reverse = (shift) || 0;
+
+				if ( defined $plumb and !ref $plumb ) {
+					if ( $plumb =~ m{$pat} ) {
+						$plumb = plumb($1);
+					}
 				}
-				if ( blessed $where
-					and $where->can("input")
-					and $where->can("inputs_include")
-					and !$where->inputs_include($self) ) {
-					warn "$fh: $where <== $self\n"
-						if DEBUG && DEBUG ge "1";
-					$where->input($self, 1);
+				elsif ( $plumb and ref $plumb eq "CODE" ) {
+					$plumb = plumb(undef, code => $plumb);
 				}
+
+				$self->connect_plumb
+					($direction => $number,
+					 $plumb, $reverse);
 			}
-			$self->{$fh};
+			$self->get_plumb($direction => $number);
+		};
+
+		my $fd_func = "${fd_name}_fh";
+		*$fd_func = sub {
+			my $self = shift;
+			if ( @_ ) {
+				$self->set_fd( $fd_num, @_ );
+			}
+			elsif ( !$self->has_fd( $fd_num ) ) {
+				$self->_open
+					($name, $fd_func,
+					 $direction, $number);
+			}
+			$self->get_fd( $fd_num );
 		};
 	}
-}
-
-=item inputs_include($item)
-
-Returns true if the input is the same as C<$item>.  Sub-classes with
-multiple inputs should return true if any of their inputs match
-C<$item>.
-
-=cut
-
-sub inputs_include {
-	no warnings 'uninitialized';
-	my $self = shift;
-	my $what = shift;
-	return ($self->{input} == $what);
-}
-
-=item outputs_include($item)
-
-Returns true if any output is the same as C<$item>.
-
-=cut
-
-sub outputs_include {
-	no warnings 'uninitialized';
-	my $self = shift;
-	my $what = shift;
-	return ($self->{output} == $what or $self->{stderr} == $what);
 }
 
 sub default_stderr { \*STDERR }
@@ -771,78 +850,134 @@ use overload
 	'==' => sub{ $_[0]->_equal($_[1]) },
 	fallback => 1;
 
+sub fd_num {
+	my $self = shift;
+	my $direction = _parse_direction(shift);
+	my $number = (shift) || 0;
+	$self->fd_shape->{$direction}[$number];
+}
+
+sub fd_shape {
+	({ input => [ 0 ],
+	   output => [ 1, 2 ] });
+}
+
+sub get_fd {
+	my $self = shift;
+	my $number = (shift) || 0;
+	$self->{fd}[$number]
+}
+
+sub has_fd {
+	my $self = shift;
+	!!$self->get_fd(@_);
+}
+
+sub set_fd {
+	my $self = shift;
+	my $number = (shift) || 0;
+	my $fd = shift;
+	my $close_on_exec = shift;
+
+	$self->{fd}[$number] = $fd;
+	if ( $close_on_exec ) {
+		$self->close_on_exec($fd);
+	}
+
+	warn "$self: FD $number = FH#".fileno($fd)
+		."; close_on_exec = ".($close_on_exec?"on":"off")."\n"
+			if DEBUG && DEBUG ge "1";
+}
+
 =item out_fh( [ $fh ] [ , $close_on_exec ] )
 
 specify (or return) the filehandle that will become this child
 process' STDOUT
-
-=cut
-
-sub out_fh {
-	my $self = shift;
-
-	if ( @_ ) {
-		$self->{out_fh} = $_[0];
-		$self->close_on_exec($_[0]) if $_[1];
-	}
-
-	if ( !$_[0] and !$self->{out_fh} ) {
-		$self->_open_output("output", "out_fh");
-	}
-
-	$self->{out_fh};
-}
 
 =item err_fh( [ $fh ] )
 
 specify (or return) the filehandle that will become this child
 process' STDERR
 
+=item has_fd( $num )
+
+=item get_fd( $num )
+
+=item set_fd( $num, $fd, [$close_on_exec] )
+
+This is a generic interface to the various *_fh functions.  Instead of
+specifying the filehandle you want to get or set by the name of the
+method, use the filehandle identifier.  When the plumb is executed,
+filehandles will be connected appropriately.
+
 =cut
 
-sub err_fh {
-	my $self = shift;
-
-	if ( $_[0] ) {
-		$self->{err_fh} = $_[0];
-		$self->close_on_exec($_[0]) if $_[1];
-	}
-
-	if ( !$_[0] and !$self->{err_fh} ) {
-		$self->_open_output("stderr", "err_fh");
-	}
-
-	return $self->{out_fh};
-}
-
-sub _open_output {
+sub _open {
 	my $self = shift;
 	my $which = shift;
-	my $output = $self->$which;
+	my $what = $self->$which;
 	my $method = shift;
+	my $direction = shift;
+	my $number = shift;
 
-	if (!ref($output)) {
-		my $out = new IO::File;
-		$out->open($output, ">")
-			or die "failed to open $which file $output for "
-				."writing; $!";
-		$self->$method($out, 1);
+	if ( DEBUG and DEBUG ge "3" ) {
+		warn "$self: opening $which - what is '$what'";
 	}
-	elsif ( ref $output eq "GLOB" or
-		( blessed $output and
-		  $output->isa("IO::Handle") ) ) {
 
-		$self->$method($output);
+	if (!ref($what)) {
+		if ( !defined $what or !length $what ) {
+			confess "Something tried to open nothing for $which";
+		}
+		my $dir = ($direction ? "writing" : "reading");
+		my $io = new IO::File;
+		$io->open($what, ($direction ? ">" : "<") )
+			or die "failed to open $which file $what for "
+				.$dir."; $!";
+		warn "$self: opened '$what' for $dir on FH#"
+			.fileno($io)."\n" if DEBUG;
+
+		# set close-on-exec: no need for parent to hold open
+		$self->$method($io, 1);
 	}
-	elsif ( blessed($output) ) {
-		if ( $output->can("in_fh") ) {
+	elsif ( ref $what eq "GLOB" or
+		( blessed $what and
+		  $what->isa("IO::Handle") ) ) {
+
+		# don't set close-on-exec: FIXME: why?
+		$self->$method($what);
+	}
+	elsif ( blessed($what) ) {
+
+		# figure out which FH on the other this one is tied to
+		my $o = $self->get_plumb_pair($direction, $number);
+
+		if ( ! $what->needs_pipe( !$direction, $o ) ) {
+
+			# no pipe needed? well, give us a FH then.
+			my $fh = $what->get_fd_pair(!$direction, $o);
+			$self->$method($fh, $self->needs_fork);
+
+		}
+		elsif ( $what->can("set_fd") ) {
+
 			my ($in, $out);
 			pipe $in, $out;
-			$self->$method($out, 1);
-			$output->in_fh($in, 1);
+			warn "$self: made pipe ".fileno($out)." -> ".
+				fileno($in)."\n" if DEBUG;
+
+			my ($mine, $theirs) =
+				($direction
+				 ? ($out, $in)
+				 : ($in, $out));
+
+			$self->$method($mine, $self->needs_fork);
+			my $nd = _not_direction($direction);
+			my $fd_num = $what->fd_num($nd, $o);
+			$what->set_fd
+				( $fd_num, $theirs, $what->needs_fork );
 		}
 		else {
-			confess "_open_output() called with output = $output";
+			confess "_open() called with what = $what";
 		}
 	}
 }
@@ -851,46 +986,6 @@ sub _open_output {
 
 specify (or return) the filehandle that will become this child
 process' STDIN.
-
-=cut
-
-sub in_fh {
-	my $self = shift;
-	if ( @_ ) {
-		$self->{in_fh} = $_[0];
-		$self->close_on_exec($self->{in_fh}) if $_[1];
-	}
-	if ( !@_ and !$self->{in_fh} ) {
-		$self->_open_input;
-	}
-	return $self->{in_fh};
-}
-
-sub _open_input {
-	my $self = shift;
-	my $input = $self->input;
-
-	if ( !ref($input) ) {
-		my $in = new IO::File;
-		$in->open($input, "<")
-			or die "failed to open $input for reading; $!";
-		$self->in_fh($in, 1);
-	}
-	elsif ( blessed($input) and $input->isa(__PACKAGE__) ) {
-		my ($in, $out);
-		pipe $in, $out;
-		$self->in_fh($in, 1);
-		$input->out_fh($out, 1);
-	}
-	elsif ( ref $input eq "GLOB" or
-		( blessed $input and
-		  $input->isa("IO::Handle") ) ) {
-		$self->in_fh($input);
-	}
-	else {
-		confess "_open_input() called with input = $input";
-	}
-}
 
 =item execute()
 
@@ -923,15 +1018,22 @@ sub execute {
 		$args[0] = $self;
 	}
 
-	# collect the filehandles before forking; some of them might
-	# require pipes to be made.
-	my $child_stdin = $self->in_fh;
-	my $child_stdout = $self->out_fh;
-	my $child_stderr = $self->err_fh;
-	warn "$self set FDs: ("
-		.(join ",", map{ $_ ? fileno($_) : "-" }
-		  $child_stdin, $child_stdout, $child_stderr)
-		.")\n" if DEBUG;
+	my ($child_stdin, $child_stdout, $child_stderr);
+
+	if ( $self->needs_fork ) {
+		# collect the filehandles before forking; some of them might
+		# require pipes to be made.
+		warn "$self about to open input\n" if DEBUG and DEBUG gt "2";
+		$child_stdin = $self->in_fh;
+		warn "$self about to open output\n" if DEBUG and DEBUG gt "2";
+		$child_stdout = $self->out_fh;
+		warn "$self about to open error\n" if DEBUG and DEBUG gt "2";
+		$child_stderr = $self->err_fh;
+		warn "$self set FDs: ("
+			.(join ",", map{ $_ ? fileno($_) : "-" }
+			  $child_stdin, $child_stdout, $child_stderr)
+				.")\n" if DEBUG;
+	}
 
 	# for extensions - to do any extra plumbing they want
 	$self->pre_fork_hook if $self->can("pre_fork_hook");
@@ -939,19 +1041,23 @@ sub execute {
 	my $pid;
 	if ($self->needs_fork) {
 		$pid = $self->do_fork();
+		if ( $pid ) {
+			# close all the child filehandles
+			my $coe = delete $self->{close_on_exec};
+			for my $fh ( @$coe ) {
+				warn "$self: closing FD ".fileno($fh)."\n"
+					if DEBUG and $fh;
+				close($fh);
+			}
+		}
+
+		$running{$pid} = $self;
+		$self->{pid} = $pid;
 	}
 
 	if ( !$self->needs_fork or $pid ) {
-		# close all the child filehandles
-		my $coe = delete $self->{close_on_exec};
-		for my $fh ( @$coe ) {
-			close($fh);
-		}
-
-		$running{$pid} = $self if $pid;
 
 		$self->{status} = COMMAND_RUNNING;
-		$self->{pid} = $pid;
 
 		# finally, continue the execution down the pipeline
 		my $output = $self->output;
@@ -961,7 +1067,7 @@ sub execute {
 			$output->execute;
 		}
 		else {
-			warn "$self not chaining out $output\n"
+			warn "$self not chaining out ".($output||"nothing")."\n"
 				if DEBUG;
 		}
 
@@ -1006,6 +1112,11 @@ sub do_fork {
 
 sub needs_fork {
 	1;
+}
+
+sub needs_pipe {
+	my $self = shift;
+	$self->needs_fork;
 }
 
 sub _fileno {
@@ -1143,7 +1254,7 @@ sub prefer_code {
 =cut
 
 use Class::Autouse map { __PACKAGE__."::".$_ }
-	qw(Plug PRNG Vent Bucket);
+	qw(Plug PRNG Vent Bucket Hose);
 
 1;
 
@@ -1175,9 +1286,31 @@ Default standard error.  Defaults to the calling process' C<STDERR>.
 Set this to return a true value if this piece of plumbing needs to
 fork; false otherwise.
 
+=item needs_pipe( $direction, $number )
+
+This is called when a plumb is about to set up FDs to another one.
+
+=item fd_shape
+
+This method should return a hash of arrays; it represents which input
+or output filehandle is connected to which system FD number.  The
+default is:
+
+  { input => [ 0 ], output => [ 1, 2 ] }
+
+=item fd_num ( $direction, $number )
+
+Functional interface to the above - return the (post-plumbed) FD
+number of the given output/slot pair.  These arguments are the same as
+to L</connect_plumb>;
+
 =item do_fork
 
 A hook for forking
+
+=item connect_hook ( $direction, $number )
+
+A hook that is called once a connection is made.
 
 =item prefer_code
 
@@ -1200,29 +1333,36 @@ module, set it to 2 or higher.
 
 =head1 AUTHOR AND LICENCE
 
-Copyright 2007, Sam Vilain.  All Rights Reserved.  This program is
-free software; you can use it and/or modify it under the same terms as
-Perl itself.
+Copyright 2007, 2008, Sam Vilain.  All Rights Reserved.  This program
+is free software; you can use it and/or modify it under the same terms
+as Perl itself.
 
-=head1 BUG REPORTS / SUBMISSIONS
+=head1 BUGS / SUBMISSIONS
 
-If you would like your issue tracked, please submit bug reports and/or
-patch submissions to:
+This is still currently quite experimental code, so it's quite likely
+that something straightforward you expect to work doesn't.
 
-L<https://rt.cpan.org/Ticket/Create.html?Queue=IO%3A%3APlumbing>
+In particular, currently this module has not been ported to run under
+Windows; please e-mail the author if you are interested in adding
+support for that.
 
-If you want a feature or a bug fixed B<please at least I<try> to write
-a test script>.
+If you find an error, please submit the failure as an addition to the
+test suite, as a patch.  Version control is at:
 
-C<IO::Plumbing> source history is browsable at:
+ git://utsl.gen.nz/IO-Plumbing
 
-L<http://utsl.gen.nz/gitweb/?p=IO-Plumbing>
+See the file F<SubmittingPatches> in the distribution for a basic
+command sequence you can use for this.  Feel free to also harass me
+via L<https://rt.cpan.org/Ticket/Create.html?Queue=IO%3A%3APlumbing>
+or mail me something other than a patch, but you win points for just
+submitting a patch in `git-format-patch` format that I can easily
+apply and work on next time.
 
-From there you will find links to the git source.
-
-If you hate bug trackers with a vengeance, then feel free to just mail
-me a C<git-format-patch>-style patch at L<samv@cpan.org> and I'll
-either ack your patch or nak it with a reason.
+To take that to its logical extension, you can expect well written
+patch series which include test cases and clearly described
+progressive changes to spur me to release a new version of the module
+with your great new feature in it.  Because I hopefully didn't have to
+do any coding for that, just review.
 
 =cut
 

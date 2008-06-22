@@ -3,7 +3,31 @@
 
 =head1 REVISION HISTORY FOR IO::Plumbing
 
-=head1 0.02, 29 Apr 2008
+=head2 0.03, 23 Jun 2008
+
+Selection of features:
+
+=over
+
+=item *
+
+Fix the MANIFEST.SKIP so we actually deliver a Makefile.PL
+
+=item *
+
+Add new "hose" object
+
+=item *
+
+Plumb connection refactor
+
+=item *
+
+Vague beginnings of fd_shape for custom-shaped plumbs
+
+=back
+
+=head2 0.02, 29 Apr 2008
 
 =over
 

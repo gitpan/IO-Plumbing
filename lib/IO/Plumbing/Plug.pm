@@ -1,18 +1,19 @@
 
 package IO::Plumbing::Plug;
 use strict;
+use IO::Plumbing qw(:constants);
 use base qw(IO::Plumbing);
+use Scalar::Util qw(blessed);
+
 use Carp qw(croak);
 
-#sub default_input { "/dev/null" }
-#sub default_output { "/dev/full" }
 sub default_input { undef }
 sub default_output { undef }
-sub default_stderr { undef }
+sub default_stderr { "/dev/null" }
 
 sub output {
 	my $self = shift;
-	if ( @_ and $self->input ) {
+	if ( @_ and $self->has_input ) {
 		croak "tried to set output of Plug with input";
 	}
 	else {
@@ -22,7 +23,7 @@ sub output {
 
 sub input {
 	my $self = shift;
-	if ( @_ and $self->output ) {
+	if ( @_ and $self->has_output ) {
 		croak "tried to set input of Plug with output";
 	}
 	else {
@@ -30,27 +31,21 @@ sub input {
 	}
 }
 
-sub _open_input {
+sub get_fd_pair {
 	my $self = shift;
-	if ( $self->input ) {
-		open our $full, ">/dev/full" unless $full;
-		warn "$self: FH ".fileno($full)." is full, connecting "
-			."to $self->{input}\n" if IO::Plumbing::DEBUG &&
-				IO::Plumbing::DEBUG gt "1";
-		$self->{input}->out_fh($full);
+	my $direction = $self->_parse_direction(shift);
+
+	if ( $direction ) {
+		open my $null, "</dev/null";
+		warn "$self: FH ".fileno($null)." is <null\n"
+			if IO::Plumbing::DEBUG && IO::Plumbing::DEBUG gt "1";
+		$null;
 	}
-}
-
-sub _open_output {
-	my $self = shift;
-	my $which = shift;
-
-	if ( my $plumb = $self->$which ) {
-		open our $null, "</dev/null" unless $null;
-		warn "$self: FH ".fileno($null)." is null, connecting "
-			."to $plumb\n" if IO::Plumbing::DEBUG &&
-				IO::Plumbing::DEBUG gt "1";
-		$plumb->in_fh($null);
+	else {
+		open my $full, ">/dev/full";
+		warn "$self: FH ".fileno($full)." is >full\n"
+			if IO::Plumbing::DEBUG && IO::Plumbing::DEBUG gt "1";
+		$full;
 	}
 }
 

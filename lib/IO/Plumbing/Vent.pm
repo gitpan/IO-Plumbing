@@ -79,31 +79,23 @@ sub name {
 
 }
 
-sub _open_input {
+sub get_fd_pair {
 	my $self = shift;
-	if ( $self->input ) {
-		open our $null, ">/dev/null" unless $null;
-		warn "$self: FH ".fileno($null)." is null, connecting "
-			."to $self->{input}\n" if IO::Plumbing::DEBUG &&
-				IO::Plumbing::DEBUG gt "1";
-		$self->{input}->out_fh($null);
+	my $direction = shift;
+
+	if ( $direction ) {
+		open my $zero, "</dev/zero";
+		warn "$self: FH ".fileno($zero)." is <zero\n"
+			if IO::Plumbing::DEBUG && IO::Plumbing::DEBUG gt "1";
+		$zero;
+	}
+	else {
+		open my $null, ">/dev/null";
+		warn "$self: FH ".fileno($null)." is >null\n"
+			if IO::Plumbing::DEBUG && IO::Plumbing::DEBUG gt "1";
+		$null;
 	}
 }
-
-sub _open_output {
-	my $self = shift;
-	my $which = shift;
-	my $method = shift;
-
-	if ( my $plumb = $self->$which ) {
-		open our $zero, "</dev/zero" unless $zero;
-		warn "$self: FH ".fileno($zero)." is zero, connecting "
-			."to $plumb\n" if IO::Plumbing::DEBUG &&
-				IO::Plumbing::DEBUG gt "1";
-		$plumb->in_fh($zero);
-	}
-}
-
 
 1;
 
