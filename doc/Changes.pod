@@ -3,6 +3,16 @@
 
 =head1 REVISION HISTORY FOR IO::Plumbing
 
+=head2 0.06, 8 Jul 2008
+
+=over
+
+=item *
+
+Module::Install didn't update META.yml.  So, here is another release.
+
+=back
+
 =head2 0.05, 8 Jul 2008
 
 =over

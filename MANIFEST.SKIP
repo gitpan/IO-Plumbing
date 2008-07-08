@@ -4,3 +4,5 @@ MANIFEST.(old|bak)
 IO-Plumbing-*
 Makefile(.old)?$
 .*~$
+debian/
+.*-stamp
