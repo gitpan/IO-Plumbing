@@ -3,6 +3,17 @@
 
 =head1 REVISION HISTORY FOR IO::Plumbing
 
+=head2 0.04, 8 Jul 2008
+
+=over
+
+=item *
+
+Fix some test failures that were due to 'od -x' having different
+output across systems
+
+=back
+
 =head2 0.03, 23 Jun 2008
 
 Selection of features:

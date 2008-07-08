@@ -14,22 +14,24 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 286d5e27d64b923dbb3ff8e5b447b74906e90da0 MANIFEST
+SHA1 6e6a5b4d2250f794ddcabf3ae7d290751d26a2e9 MANIFEST
 SHA1 1229d75432f35052a9491baf8a0dc48123722014 MANIFEST.SKIP
-SHA1 96c5ea3c61d90fabced7d747484bd51809750288 META.yml
+SHA1 b7654bac30a7381ad9569c27b60cd11f803c31a6 META.yml
 SHA1 4d18bf83185d7c79f6bab2c53a94df181ded3e6d Makefile.PL
 SHA1 ca6574153133b7b8812791d51c3ba01ed72c539b README
-SHA1 52e9dbac9ee8ce85bff73b14cdba384877f176de SubmittingPatches
-SHA1 ddea76a7d1e7c5f98d19d0149057f6fb4d84f4cd doc/Changes.pod
-SHA1 7e2cfa1b9efe0d502ee57717649c90ba4bd28ba9 inc/Module/Install.pm
-SHA1 6e1392d80a0f239eecd5664f7f21f922cedb9329 inc/Module/Install/Base.pm
-SHA1 f69417fe831d9cc22a78f00a617afadceade4d81 inc/Module/Install/Can.pm
-SHA1 c61d02895330310048bf388881b5e2e064031561 inc/Module/Install/Fetch.pm
-SHA1 54fcbed19232ec959bb17cfb4410599afc7f0779 inc/Module/Install/Makefile.pm
-SHA1 7d3be9b158e37b2b2c22084740099955623b1d56 inc/Module/Install/Metadata.pm
-SHA1 0a8b66180229ba2f9deaea1fedd0aacf7a7ace6b inc/Module/Install/Win32.pm
-SHA1 d3352eb33fe43a5f3ead513f645224fe34d73bc9 inc/Module/Install/WriteAll.pm
-SHA1 a6c02685882af93d2c9533048a24aad6227ba740 lib/IO/Plumbing.pm
+SHA1 c91d8da54a899e4ff636afd984755f73c72a6ac4 SubmittingPatches
+SHA1 cc82e051ce637e9e9d06f1a3824b48f9c509d91d doc/Changes.pod
+SHA1 4d69908b6fb641f0a815ba7a055202be18254580 inc/Module/Install.pm
+SHA1 9d708b71021016d397301787145612635e427eb1 inc/Module/Install/Base.pm
+SHA1 f89a60f78fb54b8b196576ac0b0a3e3987f99e92 inc/Module/Install/Can.pm
+SHA1 4799af3d95b14d78d553bbc972b4d381776055ee inc/Module/Install/Fetch.pm
+SHA1 c3302d417eafbb9a4ab3b35603b4a7443336ef16 inc/Module/Install/Include.pm
+SHA1 0d5d2f7da809f3f2a6dd55164fede247d6cd7cbc inc/Module/Install/Makefile.pm
+SHA1 e12bcb2589a3bc37d9ce3236023de7d122ccf1c7 inc/Module/Install/Metadata.pm
+SHA1 194dfef881034d358c4c88f027a3d0a5f5bab0af inc/Module/Install/Win32.pm
+SHA1 a3912b125510ff03fcedfef148dd199ca4459a63 inc/Module/Install/WriteAll.pm
+SHA1 feb443265983b24b43a35a37f1dfbc82da503da4 inc/Test/Depends.pm
+SHA1 c61825b0fe32a79c8b7b5d35da2be5b140d5f7b7 lib/IO/Plumbing.pm
 SHA1 0176df804d31e6af9611ff05da286789e0962890 lib/IO/Plumbing/Bucket.pm
 SHA1 522650c8263022b1005c4e8ddf21eb997a0cc98e lib/IO/Plumbing/Hose.pm
 SHA1 925eb08ff34638db0e1eba33b75219ba828bb525 lib/IO/Plumbing/PRNG.pm
@@ -38,8 +40,8 @@ SHA1 bf85f4971ef657b85abbad2035bc7562b20b6629 lib/IO/Plumbing/Util.pm
 SHA1 ca03243903be5d1101bf168288db5528e5f78fab lib/IO/Plumbing/Vent.pm
 SHA1 fc5756c460b6c34b048404c99d8c6eecccb69f81 t/01-use.t
 SHA1 931676a6f5800b3d3fde80c12dffb623551e2663 t/02-model.t
-SHA1 65a6c72945369da61af65052ee2155e3e329172f t/03-pipelines.t
-SHA1 183bd56f98c1d6e9358d4c76cf8f3ed947411ecf t/04-buckets.t
+SHA1 64b9d1f8851988bed43721ec96a760f1d3e9038d t/03-pipelines.t
+SHA1 d692ce1f47a1e1e6bb4e84f4cbcfe8bb86aac184 t/04-buckets.t
 SHA1 68c929726f4f68f4db602dcba3e2cd0c4735b3b8 t/05-shellquotes.t
 SHA1 9eb305f3a0e8a4599455b1be63c62b7009dd024e t/06-plug.t
 SHA1 3d29fd3165582da2b55dbbde8eb5cc4b4b4b9a91 t/07-vent.t
@@ -49,7 +51,7 @@ SHA1 e362b1826df0106dc8a68156c788000c27d97ecd t/pod_coverage.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iEYEARECAAYFAkheQb0ACgkQ/AZAiGayWEMWWACdEPUlu4psAClNZHLFYSIki66N
-FSIAn3aCd+hybSqnViidWVWhev4cB21h
-=oi2g
+iEYEARECAAYFAkhytS0ACgkQ/AZAiGayWEMJTACeNstz82DbFwG1iunFYaTMbR8E
++ZIAoIUXa5qOKMcBmQHHvW3+oyguVmcC
+=ODkC
 -----END PGP SIGNATURE-----

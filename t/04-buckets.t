@@ -17,7 +17,11 @@ my
  $command->output(plumb("od", args => ["-x"]));
 
 $command->execute;
-like($command->terminus->contents, qr/^.*2123 752f 7273 622f/, "Bucket");
+like($command->terminus->contents,
+     qr/^.*(2123|2312)\s+(752f|2f75)\s+(7273|7372)\s+(622f|2f62)/i,
+     "Bucket");
+like($output, ,
+     "pipeline worked");
 
 IO::Plumbing->import("bucket");
 $command = plumb("cat", args => ["-e"], input => bucket("foo\n"));

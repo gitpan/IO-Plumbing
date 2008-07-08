@@ -1,21 +1,22 @@
---- 
-abstract: pluggable, lazy access to system commands
-author: 
-  - Sam Vilain <samv@utsl.gen.nz>
-build_requires: 
-  Test::Depends: 0
+---
+abstract: 'pluggable, lazy access to system commands'
+author:
+  - 'Sam Vilain <samv@utsl.gen.nz>'
+build_requires:
   Test::More: 0
 distribution_type: module
-generated_by: Module::Install version 0.68
+generated_by: 'Module::Install version 0.72'
 license: perl
-meta-spec: 
+meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.3.html
   version: 1.3
 name: IO-Plumbing
-no_index: 
-  directory: 
+no_index:
+  directory:
+    - doc
     - inc
     - t
-requires: 
-  perl: 5.8.4
-version: 0.01
+requires:
+  Class::Autouse: 0
+  perl: 5.008004
+version: 0.04
