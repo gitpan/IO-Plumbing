@@ -99,7 +99,7 @@ BEGIN {
 	use base qw(Exporter);
 	our (@EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
-	$VERSION = "0.06";
+	$VERSION = "0.07";
 
 	our @handyman = qw(plumb prng  plug  bucket vent hose );
 
@@ -136,13 +136,13 @@ sub new {
 	$self;
 }
 
-# just for fun
-sub BUILDALL {
-	my $self = shift;
-
+sub _c3_order {
+	my $class = shift;
+	
 	my @c3 = (sort { $a->isa($b) <=> $b->isa($a) }
 		(do {
 			my (@x, %x);
+			@x = $class;
 			while (my $c = shift @x ) {
 				no strict 'refs';
 				push @x,grep{!$x{$c}++}
@@ -151,7 +151,18 @@ sub BUILDALL {
 			keys %x
 		}));
 
-	for my $c ( @c3 ) {
+	@c3;
+}
+
+use Memoize;
+memoize '_c3_order';
+
+# just for fun
+sub BUILDALL {
+	my $self = shift;
+	no strict 'refs';
+
+	for my $c ( _c3_order(ref $self) ) {
 		if ( defined &{"${c}::BUILD"} ) {
 			&{"${c}::BUILD"}($self);
 		}
@@ -795,21 +806,34 @@ Waits for this specific piece of plumbing to finish.
 
 sub wait {
 	my $self = shift;
+	return $self->rc if defined $self->rc;
+
 	my $pid = $self->pid
 		or croak "wait on process in state ".$self->status_name;
 
 	warn "$self: waiting on pid $pid\n"
 		if DEBUG && DEBUG ge "1";
 
-	my $found = waitpid($pid, 0);
-	my $rc = $?;
-	if ( $found == $pid ) {
-		$self->rc($rc);
-	}
-	else {
-		warn "$self: ignoring RC from pid $pid";
-		$self->{status} = COMMAND_LOST;
-	}
+	do {
+		my $found = waitpid($pid, 0);
+		my $rc = $?;
+		if ( $found == $pid ) {
+			$self->rc($rc);
+		}
+		elsif ( $found == -1 ) {
+			warn "$self: -1 from waitpid; SIGCHLD turned off?";
+			$self->{status} = COMMAND_LOST;
+			last;
+		}
+		elsif (my $plumb = delete $running{$found}) {
+			warn "$self: waitpid($pid) returned RC for pid $found ($plumb)";
+			$plumb->rc($rc);
+		}
+		else {
+			warn "$self: ignoring RC from pid $found (interested in: $pid)";
+			$self->{status} = COMMAND_LOST;
+		}
+	} until (defined $self->rc);
 
 	return $self->rc;
 }

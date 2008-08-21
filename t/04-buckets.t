@@ -22,11 +22,11 @@ like($command->terminus->contents,
      "Bucket");
 
 IO::Plumbing->import("bucket");
-$command = plumb("cat", args => ["-e"], input => bucket("foo\n"));
+$command = plumb("sed", args => ["s/\$/bar/"], input => bucket("foo\n"));
 
 $command->execute;
 my $output = $command->terminus->contents;
-like($output, qr/foo\$/, "pouring bucket");
+like($output, qr/foobar/, "pouring bucket");
 
 # pour line by line
 my $bukkit = bucket(undef, input => plumb(sub { print "O HAI\n$$\n" }));

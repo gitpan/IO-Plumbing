@@ -170,7 +170,6 @@ sub collect_out {
 
 	my $out_b = $self->{contents}||=[];
 	my $x;
-	$DB::single = 1;
 	if ( ref $out_b and ref $out_b eq "ARRAY" ) {
 		$x = $out_b;
 	} else {
