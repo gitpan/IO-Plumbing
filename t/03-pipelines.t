@@ -44,5 +44,5 @@ $command->terminus->wait;
 
 is($command->terminus->rc, 0, "pipeline worked");
 is($command->terminus->errormsg, "finished normally", "->errormsg");
-like($output, qr/^.*(2123|2312)\s+(752f|2f75)\s+(7273|7372)\s+(622f|2f62)/i,
+like($output, qr/^.*(2123|2321)\s+(752f|2f75)\s+(7273|7372)\s+(622f|2f62)/i,
      "pipeline worked");

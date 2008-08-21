@@ -18,7 +18,7 @@ my
 
 $command->execute;
 like($command->terminus->contents,
-     qr/^.*(2123|2312)\s+(752f|2f75)\s+(7273|7372)\s+(622f|2f62)/i,
+     qr/^.*(2123|2321)\s+(752f|2f75)\s+(7273|7372)\s+(622f|2f62)/i,
      "Bucket");
 
 IO::Plumbing->import("bucket");

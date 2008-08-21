@@ -99,7 +99,7 @@ BEGIN {
 	use base qw(Exporter);
 	our (@EXPORT, @EXPORT_OK, %EXPORT_TAGS, $VERSION);
 
-	$VERSION = "0.07";
+	$VERSION = "0.08";
 
 	our @handyman = qw(plumb prng  plug  bucket vent hose );
 

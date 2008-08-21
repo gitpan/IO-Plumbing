@@ -5,7 +5,7 @@
 # Perl itself.
 #
 
-use Test::More no_plan;
+use Test::More tests => 5;
 use strict;
 
 BEGIN {
@@ -23,4 +23,13 @@ $command = plumb
 	( "dd if=/dev/zero bs=1k count=200",
 	  output => plug, stderr => "/dev/null",
 	);
+
+diag("firing up dd");
+$command->execute;
+diag("waiting for dd to complete");
+$command->wait;
+diag("dd finished");
+
+isnt($command->rc, 0, "cannot write to a plug");
 isnt($command->errormsg, undef, "plug - output");
+diag("error: ".$command->errormsg);

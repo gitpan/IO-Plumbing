@@ -22,4 +22,10 @@ BUG REPORTS / FEATURE REQUESTS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 See the POD for IO::Plumbing.
 
+ERRATA
+~~~~~~
+Currently on some platforms, t/06-plug.t is reporting a spurious error.
+If you get this error during "make test", and are able to help debug,
+I want to hear from you!
+
 Sam Vilain, <samv@cpan.org>

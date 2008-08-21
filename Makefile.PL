@@ -7,7 +7,7 @@ author          ("Sam Vilain <samv\@utsl.gen.nz>");
 version_from    ("lib/IO/Plumbing.pm");
 license         ("perl");
 
-requires        ("perl" => 5.008004);  # backport patches welcome...
+requires        ("perl" => 5.006001);  # backport patches welcome...
 requires        ("Class::Autouse");
 include         ("Test::Depends");
 build_requires  ("Test::More");

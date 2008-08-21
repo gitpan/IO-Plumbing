@@ -18,5 +18,5 @@ no_index:
     - t
 requires: 
   Class::Autouse: 0
-  perl: 5.8.4
-version: 0.07
+  perl: 5.6.1
+version: 0.08
